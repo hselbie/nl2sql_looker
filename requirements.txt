@@ -1,0 +1,7 @@
+chromadb
+langchain
+google-cloud-core
+pyyaml
+absl-py
+looker_sdk
+Flask
