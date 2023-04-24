@@ -1,6 +1,7 @@
 chromadb
 langchain
 google-cloud-core
+google-cloud-bigquery
 pyyaml
 absl-py
 looker_sdk
