@@ -5,10 +5,10 @@ import glob
 
 from absl import app
 from google.cloud.aiplatform.private_preview import language_models
-from looker_dashboard_index import LookerDashboardIndex
-import looker_helper
-import prompt_helper
-from vertex_llm import VertexEmbeddings
+from sapphire_llm.looker_dashboard_index import LookerDashboardIndex
+from sapphire_llm import looker_helper
+from sapphire_llm import prompt_helper
+from sapphire_llm.vertex_llm import VertexEmbeddings
 
 INDEX_PATH='.chroma/index'
 REQUESTS_PER_MINUTE = 15

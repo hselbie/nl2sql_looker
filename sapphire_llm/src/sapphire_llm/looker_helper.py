@@ -3,7 +3,7 @@
 import yaml
 import re
 from looker_sdk import init40, models40
-from bq_client import BQHelper
+from sapphire_llm.bq_client import BQHelper
 
 sdk = init40(config_file='./config/looker.ini')
 bq_helper = BQHelper('cortex-demo-genai')

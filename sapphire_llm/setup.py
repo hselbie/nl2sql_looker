@@ -1,10 +1,11 @@
 from setuptools import find_packages
 from setuptools import setup
 
+
 setup(
     name='sapphire_llm',
     version='0.1.0',
-    install_requires=['Your-Library'],
+    install_requires=open('requirements.txt').read().splitlines(),
     packages=find_packages('src'),
     package_dir={'': 'src'},
     license='MIT',

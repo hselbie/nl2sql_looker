@@ -1,7 +1,7 @@
 """Helper LLM Prompt functions."""
 import json
 from google.cloud.aiplatform.private_preview import language_models
-from vertex_llm import VertexLLM
+from sapphire_llm.vertex_llm import VertexLLM
 
 model = language_models.TextGenerationModel.from_pretrained('text-bison-001')
 
