@@ -22,10 +22,9 @@ app = Flask(__name__)
 
 files = glob.glob("lookml/*.lookml")
 reports = looker_helper.get_lookml_dashboard_descriptions(files)
-print(reports)
 
-#embedding = VertexEmbeddings(language_models.TextEmbeddingModel(), requests_per_minute=REQUESTS_PER_MINUTE)
-#looker_index = LookerDashboardIndex(INDEX_PATH, text_items=reports, embedding=embedding)
+embedding = VertexEmbeddings(language_models.TextEmbeddingModel(), requests_per_minute=REQUESTS_PER_MINUTE)
+looker_index = LookerDashboardIndex(INDEX_PATH, text_items=reports, embedding=embedding)
 
 
 # The route() function of the Flask class is a decorator,
@@ -34,10 +33,10 @@ print(reports)
 @app.route('/')
 # ‘/’ URL is bound with hello_world() function.
 def hello_world():
-  #question = "Which customer had the top average sales this year?"
-  #report_title_match = looker_index.query_index(question)[0]
-  #table_str = looker_helper.get_companies(report_title_match)
-  return 'Hello World'
+  question = "Which customer had the top average sales this year?"
+  report_title_match = looker_index.query_index(question)[0]
+  table_str = looker_helper.get_companies(report_title_match)
+  return table_str
  
 # main driver function
 if __name__ == '__main__':

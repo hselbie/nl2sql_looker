@@ -1,0 +1,10 @@
+[Looker]
+# Base URL for API. Do not include /api/* in the url
+base_url=<base url of instance>
+# API 3 client id
+client_id=<your client id>
+# API 3 client secret
+client_secret=<your client secret>
+# Set to false if testing locally against self-signed certs. Otherwise leave True
+verify_ssl=True
+api_version=4.0
