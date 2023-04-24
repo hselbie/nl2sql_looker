@@ -1,2 +1,3 @@
 config/looker.ini
 .chroma
+*node_modules*

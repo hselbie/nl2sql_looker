@@ -1,0 +1,27 @@
+html,
+body {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+input, form, button {
+  all: unset;
+}
+
+.content {
+  flex: 1 0 auto;
+  min-height: calc(100vh - 160px);/* header + footer = 200px */
+}
+footer {
+  position: sticky;
+  bottom: 0;
+  height: 160px;
+  flex-shrink: 0;
+}
+
+iframe {
+  border: none;
+}
