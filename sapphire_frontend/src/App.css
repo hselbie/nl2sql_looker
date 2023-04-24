@@ -13,7 +13,7 @@ input, form, button {
 
 .content {
   flex: 1 0 auto;
-  min-height: calc(100vh - 160px);/* header + footer = 200px */
+  min-height: calc(100vh);/* header + footer = 200px */
 }
 footer {
   position: sticky;
@@ -24,6 +24,5 @@ footer {
 
 iframe {
   border: none;
-  height: 640px;
   width: 100%;
 }
