@@ -24,4 +24,6 @@ footer {
 
 iframe {
   border: none;
+  height: 640px;
+  width: 100%;
 }

@@ -1,9 +1,7 @@
-import logo from './logo.svg';
 import './App.css';
 
 import * as React from 'react';
 import { useRef, useState } from 'react';
-import IframeResizer from 'iframe-resizer-react'
 
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -97,17 +95,7 @@ const iframeRef = useRef(null)
         <Typography variant="body2" color="text" sx={{ mt: 3, mb: 3 }}>
           {answer}
         </Typography>
-        <IframeResizer
-            src={lookerUrl}
-            style={{ width: '1px', minWidth: '100%', minHeight: '640px'}}
-            onResized={onResized}
-            onMessage={onMessage}
-            heightCalculationMethod="lowestElement"
-            inPageLinks
-            log
-            checkOrigin={false}>
-          {messageData}
-        </IframeResizer>
+        <Iframe url={lookerUrl} />
         
       </Container>
       <Box
