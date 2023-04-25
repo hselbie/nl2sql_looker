@@ -1,9 +1,7 @@
-import logo from './logo.svg';
 import './App.css';
 
 import * as React from 'react';
 import { useRef, useState } from 'react';
-import IframeResizer from 'iframe-resizer-react'
 
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -39,9 +37,12 @@ const App = props => {
   const [question, setQuestion] = useState(exampleQuestion);
   const [answer, setAnswer] = useState(null);
   const [lookerUrl, setLookerUrl] = useState(null);
+  const [frameHeight, setFrameHeight] = useState('100px');
 
   async function handleSubmit (event) {
     event.preventDefault();
+
+    setFrameHeight('1600px');
 
     setQuestionDisplay('Q: ' + question);
 
@@ -67,17 +68,6 @@ const App = props => {
     setQuestion(e.target.value);
   }
 
-  const onResized = data => {
-    console.log(data);
-  };
-
-const iframeRef = useRef(null)
-  const [messageData, setMessageData] = useState()
-  const onMessage = data => {
-    setMessageData(data)
-    iframeRef.current.sendMessage('Hello back from the parent page')
-  }
-
   return (
     <Box
       sx={{
@@ -86,7 +76,7 @@ const iframeRef = useRef(null)
       }}
     >
       <CssBaseline />
-      <Stack>
+      <Stack className="content">
       <Container component="main" sx={{ mt: 8, mb: 2 }} maxWidth="md">
         <Typography variant="h2" component="h1" gutterBottom>
           Welcome to the Sapphire LLM!
@@ -97,17 +87,7 @@ const iframeRef = useRef(null)
         <Typography variant="body2" color="text" sx={{ mt: 3, mb: 3 }}>
           {answer}
         </Typography>
-        <IframeResizer
-            src={lookerUrl}
-            style={{ width: '1px', minWidth: '100%', minHeight: '640px'}}
-            onResized={onResized}
-            onMessage={onMessage}
-            heightCalculationMethod="lowestElement"
-            inPageLinks
-            log
-            checkOrigin={false}>
-          {messageData}
-        </IframeResizer>
+        <iframe src={lookerUrl} height={frameHeight} scrolling="no" />
         
       </Container>
       <Box
