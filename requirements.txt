@@ -6,3 +6,4 @@ pyyaml
 absl-py
 looker_sdk
 Flask
+flask-cors
