@@ -1,8 +1,7 @@
 # Importing flask module in the project is mandatory
 # An object of Flask class is our WSGI application.
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask import jsonify
-
  
 
 import glob
@@ -23,15 +22,22 @@ REQUESTS_PER_MINUTE = 15
 
 # Flask constructor takes the name of
 # current module (__name__) as argument.
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='', static_folder='../sapphire_frontend/build')
 CORS(app)
+
+# web UI endpoint
+@app.route('/ui', methods = ['GET'], defaults={'path': '/ui'})
+def ui_route(path):
+    print("HELLO")
+    return send_from_directory(app.static_folder, 'index.html')
+
 
 
 files = glob.glob("lookml/*.lookml")
 reports = looker_helper.get_lookml_dashboard_descriptions(files)
 
 embedding = VertexEmbeddings(language_models.TextEmbeddingModel(), requests_per_minute=REQUESTS_PER_MINUTE)
-looker_index = LookerDashboardIndex(INDEX_PATH, text_items=reports, embedding=embedding)
+looker_index = LookerDashboardIndex(INDEX_PATH, text_items=reports)#, embedding=embedding)
 
 
 # The route() function of the Flask class is a decorator,
