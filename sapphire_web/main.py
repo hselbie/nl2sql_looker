@@ -28,7 +28,6 @@ CORS(app)
 # web UI endpoint
 @app.route('/ui', methods = ['GET'], defaults={'path': '/ui'})
 def ui_route(path):
-    print("HELLO")
     return send_from_directory(app.static_folder, 'index.html')
 
 
