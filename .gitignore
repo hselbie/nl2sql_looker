@@ -2,3 +2,4 @@ config/looker.ini
 .chroma
 *node_modules*
 *.sw*
+sapphire_frontend/build
