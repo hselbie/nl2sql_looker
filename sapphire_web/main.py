@@ -2,7 +2,6 @@
 # An object of Flask class is our WSGI application.
 from flask import Flask, send_from_directory
 from flask import jsonify
-
  
 
 import glob
@@ -10,7 +9,7 @@ import json
 import os
 
 from absl import app
-#from google.cloud.aiplatform.private_preview import language_models
+from google.cloud.aiplatform.private_preview import language_models
 from sapphire_llm.looker_dashboard_index import LookerDashboardIndex
 from sapphire_llm import looker_helper
 from sapphire_llm import prompt_helper
@@ -23,12 +22,13 @@ REQUESTS_PER_MINUTE = 15
 
 # Flask constructor takes the name of
 # current module (__name__) as argument.
-app = Flask(__name__, static_folder='sapphire_frontend/build')
+app = Flask(__name__, static_url_path='', static_folder='../sapphire_frontend/build')
 CORS(app)
 
 # web UI endpoint
-@app.route('/ui', defaults={'path': ''})
+@app.route('/ui', methods = ['GET'], defaults={'path': '/ui'})
 def ui_route(path):
+    print("HELLO")
     return send_from_directory(app.static_folder, 'index.html')
 
 
