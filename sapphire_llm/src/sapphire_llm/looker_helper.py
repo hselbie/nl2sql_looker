@@ -168,12 +168,39 @@ def get_open_cases(report_title_match, selected_company):
 def get_query_results(report_title_match):
   elements = sdk.search_dashboard_elements(title=report_title_match)
   results = []
+  dashboard_id = ''
   for element in elements:
-    if element.result_maker and int(element.dashboard_id) == 12:
+    dashboard_id = element.dashboard_id
+    if element.result_maker:
       query_str = sdk.run_query(element.result_maker.query_id,result_format="sql")
       query_results = bq_helper.query(query_str)
-      for row in query_results:
-        results.append(row[0])
+      print(query_str)
+      for i, row in enumerate(query_results):
+        results.append(f'{i+1}. {row[0]}, {row[1]}')
       break
 
+  return (results, dashboard_id)
+
+
+def get_query_results_with_filter(report_title_match, key, value):
+  print(report_title_match, key, value)
+  elements = sdk.search_dashboard_elements(title=report_title_match)
+  # print(elements)
+  results = []
+  for element in elements:
+    print("dashboard element: ", element.dashboard_id, element.lookml_link_id)
+    filter_fields = element.result_maker.filterables[0].listen
+    for field_element in filter_fields:
+        print("field element: ", field_element)
+        if field_element.dashboard_filter_name == key:
+          altered_query = element.result_maker.query
+          altered_query.client_id = None
+          altered_query.id = None
+          altered_query.filters = {field_element.field: value}
+          query_str = sdk.run_inline_query(body=altered_query, result_format="sql")
+          query_str = sdk.run_query(element.result_maker.query_id, result_format="sql")
+          query_results = bq_helper.query(query_str)
+          for row in query_results:
+            results.append(row[0])
+          break
   return results

@@ -2,6 +2,7 @@
 # An object of Flask class is our WSGI application.
 from flask import Flask, send_from_directory
 from flask import jsonify
+from flask import request
  
 
 import glob
@@ -37,6 +38,43 @@ looker_index = LookerDashboardIndex(INDEX_PATH, text_items=reports, embedding=em
 def ui_route(path):
     return send_from_directory(app.static_folder, 'index.html')
 
+
+entity_stack = []
+
+@app.route('/query', methods = ['POST', 'GET'])
+def query():
+  question = request.args.get("question")
+  report_title_match = looker_index.query_index(question)[0]
+  print(report_title_match)
+  entities = {}
+  results, dashboard_id = looker_helper.get_query_results(report_title_match)
+  looker_url = looker_helper.generate_looker_url(dashboard_id)
+  answer = prompt_helper.answer_question(question, results)
+  answer = answer.split(".")[0]
+  entities = prompt_helper.entity_extraction(answer)
+  res = list(filter(lambda x: entities[x] != '', entities))
+  key = res[0]
+  #value = entities[key]
+  print(entities)
+  entity_stack.append(entities)
+
+  return jsonify({'results': results, 'llm_text': answer, 'entities': entity_stack, 'looker_url': looker_url})
+
+
+@app.route('/no_op', methods = ['POST', 'GET'])
+def no_op():
+  question = request.args.get("question")
+  report_title_match = looker_index.query_index(question)[0]
+  print(report_title_match)
+  entities = {}
+  looker_url = ''
+  answer = ''
+  if entity_stack:
+    entities = entity_stack.pop()
+    res = list(filter(lambda x: entities[x] != '', entities))
+    key = res[0]
+    value = entities[key]
+    results = looker_helper.get_query_results_with_filter(report_title_match, key, value)
 
 # The route() function of the Flask class is a decorator,
 # which tells the application which URL should call
