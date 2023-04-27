@@ -1,11 +1,15 @@
 """Lookml SDK Sapphire Helper functions."""
 
+import os
 import yaml
 import re
 from looker_sdk import init40, models40
 from sapphire_llm.bq_client import BQHelper
 
-sdk = init40(config_file='/config/looker.ini')
+if os.path.isfile('config/looker.ini'):
+  sdk = init40(config_file='config/looker.ini')
+else:
+  sdk = init40(config_file='/config/looker.ini')
 bq_helper = BQHelper('cortex-demo-genai')
 
 

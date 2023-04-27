@@ -25,31 +25,30 @@ REQUESTS_PER_MINUTE = 15
 app = Flask(__name__, static_url_path='', static_folder='../sapphire_frontend/build')
 CORS(app)
 
+
+files = glob.glob("lookml/*.lookml")
+reports = looker_helper.get_lookml_dashboard_descriptions(files)
+
+embedding = VertexEmbeddings(language_models.TextEmbeddingModel(), requests_per_minute=REQUESTS_PER_MINUTE)
+looker_index = LookerDashboardIndex(INDEX_PATH, text_items=reports, embedding=embedding)
+
 # web UI endpoint
 @app.route('/ui', methods = ['GET'], defaults={'path': '/ui'})
 def ui_route(path):
     return send_from_directory(app.static_folder, 'index.html')
 
 
-
-files = glob.glob("lookml/*.lookml")
-reports = looker_helper.get_lookml_dashboard_descriptions(files)
-
-embedding = VertexEmbeddings(language_models.TextEmbeddingModel(), requests_per_minute=REQUESTS_PER_MINUTE)
-looker_index = LookerDashboardIndex(INDEX_PATH, text_items=reports)#, embedding=embedding)
-
-
 # The route() function of the Flask class is a decorator,
 # which tells the application which URL should call
 # the associated function.
-@app.route('/', methods = ['POST', 'GET'])
+@app.route('/test', methods = ['POST', 'GET'])
 def test():
   question = "Which customer had the top average sales this year?"
   report_title_match = looker_index.query_index(question)[0]
   table_str = looker_helper.get_companies(report_title_match)
   items = table_str.strip().split('\n')
   print(items)
-  return jsonify({'results': items, 'llm_text': ''})
+  return jsonify({'results': items, 'llm_text': 'test'})
  
 # main driver function
 if __name__ == '__main__':
