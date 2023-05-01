@@ -5,6 +5,7 @@ from sapphire_llm.vertex_llm import VertexLLM
 
 model = language_models.TextGenerationModel.from_pretrained('text-bison-001')
 
+"""
 vertex_llm = VertexLLM(
   model,
   max_output_tokens=2048,
@@ -12,27 +13,36 @@ vertex_llm = VertexLLM(
   top_p=0.8,
   top_k=40
 ).model
+"""
 
+vertex_llm = VertexLLM(
+  model,
+  max_output_tokens=1024,
+  temperature=0,
+  top_p=0.2,
+  top_k=40
+).model
 
 def entity_extraction(sentence):
+  # Year=&Currency=USD&Region=&Sales+Org=&Distribution+Channel=&Division=&Product=&Customer=Standard+Retail
   prompt_template = """
 
 Perform NER on the following sentence and only list entities that were given in the sentence. Use the following definitions for the entities to extract:
-Year and Currency and Region and Sales Org and Distribution Channel and Product
+Year and Currency and Region and Sales Org and Distribution Channel and Product and Customer
 
 1. YEAR: The year of the report
-2. CURRENCY: The currency with a default of USD
+2. CURRENCY: The currency, the default value is USD
 3. REGION: The country, such as Canada, USA, Germany, Japan, etc.
 4. SALES ORG: The sales, such as Canada sales org, Germany sales org, US East sales org, etc.
 5. DISTRIBUTION CHANNEL: The distribution channel, such as Digital Sales, Retail Sales, Wholesale Sales, etc.
 6. DIVISION: The division, such as packaged goods, electronics, perishables, etc.
 7. PRODUCT: The product being sold, such as body scrub, laptop, pure fresh juice, etc.
-8. COMPANY: The name of the company, such as Standard Retail, Tachinome Stores, Tirgil Canary, etc.
+8. CUSTOMER: The name of the customer, such as Standard Retail, Tachinome Stores, Tirgil Canary, etc.
 
 OUTPUT FORMAT:
-{{'year': <the year>, 'currency': <the currency>, 'region': [The list of regions mentioned],
-'sales_org': [The list of sales orgs mentioned], 'distribution_channel': [The list of distribution channels mentioned],
-'division': [The list of divisions mentioned], 'product': [The list of products mentioned],
+{{'Year': <the year>, 'Currency': 'USD', 'Region': [The list of regions mentioned],
+'Sales Org': [The list of sales orgs mentioned], 'Distribution Channel': [The list of distribution channels mentioned],
+'Division': [The list of divisions mentioned], 'Product': [The list of products mentioned],
 'Customer': <the company>}}
 
 SENTENCE
@@ -41,7 +51,11 @@ SENTENCE
 
   assembled_prompt = prompt_template.format(sentence)
   result_str = str(vertex_llm.predict(assembled_prompt))
-  json_result = json.loads(result_str.replace('\'', '\"'))
+  print("prompt result entity extraction: ", result_str)
+  try:
+    json_result = json.loads(result_str.replace('\'', '\"'))
+  except:
+    json_result = {}
   return json_result
   
 
@@ -54,6 +68,52 @@ def answer_question(question, table_str):
   prompt_response = str(vertex_llm.predict(prompt_template))
   return prompt_response
 
+def summarize_response(table_str):
+  prompt_template = f"""
+  Summarize the following information:
+  {table_str}
+  """
+  print(prompt_template)
+  prompt_response = str(vertex_llm.predict(prompt_template))
+  return prompt_response
+
+def summarize_product_sales_results(table_str):
+  prompt_template = f"""
+  Summarize the following products sales results:
+  {table_str}
+  """
+  print(prompt_template)
+  prompt_response = str(vertex_llm.predict(prompt_template))
+  print(prompt_response)
+  return prompt_response
+
+def summarize_news_results(table_results):
+  
+  header = table_results.pop(0)
+
+  prompt_template = f"""
+  Summarize the trend of the news articles by month:
+  {header}
+  {table_results}
+  """
+  print(prompt_template)
+  prompt_response = str(vertex_llm.predict(prompt_template))
+  print(prompt_response)
+  return prompt_response
+
+def summarize_on_time_results(table_results):
+  
+  header = table_results.pop(0)
+
+  prompt_template = f"""
+  Summarize the following on time delivery results:
+  {header}
+  {table_results}
+  """
+  print(prompt_template)
+  prompt_response = str(vertex_llm.predict(prompt_template))
+  print(prompt_response)
+  return prompt_response
 
 def get_top_item(question, table_str):
   prompt_template = f"""

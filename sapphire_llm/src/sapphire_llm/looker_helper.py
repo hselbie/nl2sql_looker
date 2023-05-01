@@ -22,9 +22,13 @@ def human_format(num):
   return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
 
-def generate_looker_url(dashboard_id: str, **kwargs) -> str:
+def generate_looker_url(dashboard_id: str, encoded_params = None) -> str:
+  if encoded_params:
+    target_url=f"https://cortexqa.cloud.looker.com/dashboards/{dashboard_id}?{encoded_params}"
+  else:
+    target_url=f"https://cortexqa.cloud.looker.com/dashboards/{dashboard_id}"
   sso_body = models40.EmbedSsoParams(
-      target_url=f"https://cortexqa.cloud.looker.com/dashboards/{dashboard_id}",
+      target_url=target_url,
       session_length=15*60,
       force_logout_login=False,
       external_user_id="3",
@@ -96,11 +100,12 @@ def get_lookml_dashboard_descriptions(files):
           subtitle_text = re.sub(pattern, "", fulfillment[0]['elements'][0]['subtitle_text']).rstrip()
         else:
           subtitle_text = ''
+        subtitle_text = ''
         for i in range(len(fulfillment[0]['elements'])):
           element = fulfillment[0]['elements'][i]
           if 'title' in element:
             title = element['title'].rstrip()
-            title_report = element['title'].replace(" ", "_").replace("%", "percent").replace("&", "and")
+            title_report = element['title'].replace(" ", "_")#.replace("%", "percent").replace("&", "and")
             # print(filename, title_report)
 
             if 'Untitled' not in title:
@@ -111,7 +116,11 @@ def get_lookml_dashboard_descriptions(files):
                 report = f'{title_report}: {subtitle_text} for {title}'
               else:
                 # report = f'{title_report}: {title} and the only information given is {attributes[0]} and {" and ".join(attributes[1:-1])}'
-                report = f'{title_report}: {title}'
+                if 'note_text' in element:
+                  note_text = element['note_text'].rstrip()
+                  report = f'{title_report}: {title} {note_text}'
+                else:
+                  report = f'{title_report}: {title}'
               # print("added: ", report)
               reports.append(report)
 
@@ -174,7 +183,6 @@ def get_query_results(report_title_match):
     if element.result_maker:
       query_str = sdk.run_query(element.result_maker.query_id,result_format="sql")
       query_results = bq_helper.query(query_str)
-      print(query_str)
       for i, row in enumerate(query_results):
         results.append(f'{i+1}. {row[0]}, {row[1]}')
       break
@@ -182,25 +190,46 @@ def get_query_results(report_title_match):
   return (results, dashboard_id)
 
 
-def get_query_results_with_filter(report_title_match, key, value):
-  print(report_title_match, key, value)
+def get_query_results_with_filter(report_title_match, filtered_entities):
+  print(report_title_match, filtered_entities)
   elements = sdk.search_dashboard_elements(title=report_title_match)
-  # print(elements)
+  dashboard_id = ''
   results = []
+  mapped_columns = {}
   for element in elements:
-    print("dashboard element: ", element.dashboard_id, element.lookml_link_id)
+    print("############# dashboard id: ", element.dashboard_id, " lookml: ", element.lookml_link_id)
+    dashboard_id = element.dashboard_id
     filter_fields = element.result_maker.filterables[0].listen
+
     for field_element in filter_fields:
-        print("field element: ", field_element)
-        if field_element.dashboard_filter_name == key:
-          altered_query = element.result_maker.query
-          altered_query.client_id = None
-          altered_query.id = None
-          altered_query.filters = {field_element.field: value}
-          query_str = sdk.run_inline_query(body=altered_query, result_format="sql")
-          query_str = sdk.run_query(element.result_maker.query_id, result_format="sql")
-          query_results = bq_helper.query(query_str)
-          for row in query_results:
-            results.append(row[0])
-          break
-  return results
+      if field_element.dashboard_filter_name in filtered_entities.keys():
+        mapped_columns[field_element.field] = filtered_entities[field_element.dashboard_filter_name]
+
+    altered_query = element.result_maker.query
+    print("query_id:", altered_query.id, mapped_columns)
+    altered_query.client_id = None
+    altered_query.id = None
+    altered_query.filters = mapped_columns # {field_element.field: value}
+    query_str = sdk.run_inline_query(body=altered_query, result_format="sql")
+    # print(query_str)
+    query_results = bq_helper.query(query_str)
+    if 'time' in report_title_match.lower():
+      results.append('deliveries_date_created_erdat_month, deliveries_count_on_time_delivery, deliveries_count_in_full_delivery, deliveries_count_otif, deliveries_count_of_deliveries')
+    elif 'news' in report_title_match.lower():
+      results.append('month, company, number of articles')
+    for i, row in enumerate(query_results):
+      print(row)
+      #results.append(f'{i+1}. {row[0]}, {row[1]}')
+      if 'orders' in report_title_match.lower():
+        results.append(f'{row[0]}, {row[1]}')
+      elif 'monthly' in report_title_match.lower():
+        results.append(f'{row[0]}, {row[1]}, {row[2]}')
+      elif 'news' in report_title_match.lower():
+        results.append(f'{row[0]}, {row[1]}, {row[2]}')
+      elif 'time' in report_title_match.lower():
+        if row[0] is not None:
+          results.append(f'{row[0]}, {row[1]}, {row[2]}, {row[3]}, {row[4]}')
+      else:
+        results.append(f'{i+1}. {row[0]}, {row[1]}')
+    break
+  return (results, dashboard_id)
