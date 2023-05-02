@@ -183,11 +183,13 @@ def get_query_results(report_title_match):
     if element.result_maker:
       query_str = sdk.run_query(element.result_maker.query_id,result_format="sql")
       query_results = bq_helper.query(query_str)
+      header = 'customers_name, sales'
       for i, row in enumerate(query_results):
-        results.append(f'{i+1}. {row[0]}, {row[1]}')
+        if row[1] is not None:
+          results.append(f'{i+1}. {row[0]}, {human_format(row[1])}')
       break
 
-  return (results, dashboard_id)
+  return (results, dashboard_id, header)
 
 
 def get_query_results_with_filter(report_title_match, filtered_entities):
@@ -197,10 +199,13 @@ def get_query_results_with_filter(report_title_match, filtered_entities):
   results = []
   mapped_columns = {}
   for element in elements:
-    print("############# dashboard id: ", element.dashboard_id, " lookml: ", element.lookml_link_id)
+    print("############# dashboard id: ", element.dashboard_id, " lookml: ", element.lookml_link_id, "entities: ", filtered_entities)
     dashboard_id = element.dashboard_id
     filter_fields = element.result_maker.filterables[0].listen
 
+    filtered_entities['Timeframe Month'] = '3 months'
+    if 'Year' in filtered_entities:
+      filtered_entities['Case Created Date'] = filtered_entities['Year']
     for field_element in filter_fields:
       if field_element.dashboard_filter_name in filtered_entities.keys():
         mapped_columns[field_element.field] = filtered_entities[field_element.dashboard_filter_name]
@@ -211,25 +216,40 @@ def get_query_results_with_filter(report_title_match, filtered_entities):
     altered_query.id = None
     altered_query.filters = mapped_columns # {field_element.field: value}
     query_str = sdk.run_inline_query(body=altered_query, result_format="sql")
-    # print(query_str)
+    print(query_str)
     query_results = bq_helper.query(query_str)
+    header = 'customers_name, sales'
     if 'time' in report_title_match.lower():
-      results.append('deliveries_date_created_erdat_month, deliveries_count_on_time_delivery, deliveries_count_in_full_delivery, deliveries_count_otif, deliveries_count_of_deliveries')
+      header = 'deliveries_date_created_erdat_month, deliveries_count_on_time_delivery, deliveries_count_in_full_delivery, deliveries_count_otif, deliveries_count_of_deliveries'
     elif 'news' in report_title_match.lower():
-      results.append('month, company, number of articles')
+      header = 'month, company, number of articles'
+    elif 'monthly' in report_title_match.lower():
+      header = 'date, sales_volume_count, sales_volume_total_sales_price_net_document_currency'
+    elif 'cases' in report_title_match.lower():
+      header = 'open_cases, case_management_count'
+    elif 'stock' in report_title_match.lower():
+      header = 'product, product_stock_in_hand'
+    elif 'delivery' in report_title_match.lower():
+      header = 'date, vendor_performance_vendor_ontime, vendor_performance_infull_rate, vendor_performance_vendor_ontime_late'
     for i, row in enumerate(query_results):
-      print(row)
-      #results.append(f'{i+1}. {row[0]}, {row[1]}')
-      if 'orders' in report_title_match.lower():
-        results.append(f'{row[0]}, {row[1]}')
-      elif 'monthly' in report_title_match.lower():
-        results.append(f'{row[0]}, {row[1]}, {row[2]}')
-      elif 'news' in report_title_match.lower():
-        results.append(f'{row[0]}, {row[1]}, {row[2]}')
-      elif 'time' in report_title_match.lower():
-        if row[0] is not None:
-          results.append(f'{row[0]}, {row[1]}, {row[2]}, {row[3]}, {row[4]}')
-      else:
-        results.append(f'{i+1}. {row[0]}, {row[1]}')
+      print("##############", row)
+      if row[1] is not None:
+        if 'orders' in report_title_match.lower():
+          results.append(f'{row[0]}, {row[1]}')
+        elif 'monthly' in report_title_match.lower():
+          results.append(f'{row[0]}, {row[1]}, {row[2]}')
+        elif 'news' in report_title_match.lower():
+          results.append(f'{row[0]}, {row[1]}, {row[2]}')
+        elif 'time' in report_title_match.lower():
+          if row[0] is not None:
+            results.append(f'{row[0]}, {row[1]}, {row[2]}, {row[3]}, {row[4]}')
+        elif 'cases' in report_title_match.lower():
+          results.append(f'{row[0]}, {row[1]}')
+        elif 'stock' in report_title_match.lower():
+          results.append(f'{row[0]}, {row[2]}') # row[1] is defaul to None for some reason
+        elif 'delivery' in report_title_match.lower():
+          results.append(f'{row[0]}, {row[1]}, {row[2]}, {row[3]}') # row[1] is defaul to None for some reason
+        else:
+          results.append(f'{i+1}. {row[0]}, {human_format(row[1])}')
     break
-  return (results, dashboard_id)
+  return (results, dashboard_id, header)

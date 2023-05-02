@@ -53,40 +53,43 @@ def query():
   if entities:
     keys = list(filter(lambda x: entities[x] != '' and entities[x] != [], entities))
     filtered_entities = {key: entities[key] for key in keys}
-    results, dashboard_id = looker_helper.get_query_results_with_filter(report_title_match, filtered_entities)
-    print("filtered entities: ", filtered_entities)
+    if "cases" in report_title_match.lower():
+      filtered_entities['Year'] = 'this year'
+    results, dashboard_id, header = looker_helper.get_query_results_with_filter(report_title_match, filtered_entities)
+    print("$$$$$$$$$$ filtered entities: ", filtered_entities)
 
     # Use different prompts for different "intents".
     if "orders" in report_title_match.lower():
-      print("Summarize results: ", results)
+      print("Summarize results: ", header, results)
       answer = prompt_helper.summarize_response(results)
     elif "products" in report_title_match.lower():
-      print("Summarize product sales: ", results)
-      answer = prompt_helper.summarize_product_sales_results(results)
+      print("Summarize product sales: ", header, results)
+      answer = prompt_helper.answer_question(question, header, results)
+      #answer = prompt_helper.summarize_product_sales_results(results)
     elif "time" in report_title_match.lower():
-      answer = prompt_helper.summarize_on_time_results(results)
+      answer = prompt_helper.summarize_on_time_results(results, header)
     elif "news" in report_title_match.lower():
-      answer = prompt_helper.summarize_news_results(results)
+      answer = prompt_helper.summarize_news_results(results, header)
     else:
-      answer = prompt_helper.answer_question(question, results)
-      answer = answer.split(".")[0]
+      answer = prompt_helper.answer_question(question, header, results)
+      # answer = answer.split(".")[0]
 
     looker_url = looker_helper.generate_looker_url(dashboard_id, urlencode(filtered_entities))
 
   else:
     entities = {}
-    question_entities = prompt_helper.entity_extraction(question)
+    question_entities = prompt_helper.entity_extraction(question, model="text-unicorn-001")
     print("question_entities: ", question_entities)
     keys = list(filter(lambda x: question_entities[x] != '' and question_entities[x] != [], question_entities))
     if len(keys) > 0:
-      results, dashboard_id = looker_helper.get_query_results_with_filter(report_title_match, question_entities)
+      results, dashboard_id, header = looker_helper.get_query_results_with_filter(report_title_match, question_entities)
       looker_url = looker_helper.generate_looker_url(dashboard_id, urlencode(question_entities))
     else:
-      results, dashboard_id = looker_helper.get_query_results(report_title_match)
+      results, dashboard_id, header = looker_helper.get_query_results(report_title_match)
       looker_url = looker_helper.generate_looker_url(dashboard_id)
-    answer = prompt_helper.answer_question(question, results)
-    answer = answer.split(".")[0]
-    entities = prompt_helper.entity_extraction(answer)
+    answer = prompt_helper.answer_question(question, header, results)
+    # answer = answer.split(".")[0]
+    entities = prompt_helper.entity_extraction(answer, model="text-unicorn-001")
     res = list(filter(lambda x: entities[x] != '', entities))
 
   return jsonify({'results': results, 'llm_text': answer, 'entities': entities, 'looker_url': looker_url})

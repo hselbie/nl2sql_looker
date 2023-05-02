@@ -4,6 +4,11 @@ import time
 
 from google.cloud.aiplatform.private_preview import language_models
 
+from google.cloud import aiplatform
+from google.cloud.aiplatform.gapic.schema import predict
+from google.protobuf import json_format
+from google.protobuf.struct_pb2 import Value
+
 from langchain.embeddings.base import Embeddings
 from langchain.llms.base import LLM
 
@@ -59,8 +64,54 @@ class VertexLLM(LLM):
     return 'vertex'
 
   def _call(self, prompt, stop=None):
-    result = self.model.predict(prompt, **self.predict_kwargs)
+    #result = self.model.predict(prompt, **self.predict_kwargs)
+    result = self.predict(prompt)
     return str(result)
+  
+  def predict(self, prompt: str, model: str = 'text-bison-001'):
+    return self._predict_large_language_model_sample("us-central1-aiplatform.googleapis.com", 
+                                                     "vertex-ai-foundation-models", 
+                                                     model,
+                                                     {"content": prompt},
+                                                     {
+                                                      "temperature": self.predict_kwargs['temperature'],
+                                                      "maxOutputTokens": self.predict_kwargs['max_output_tokens'],
+                                                      "topK":self.predict_kwargs['top_k'],
+                                                      "topP":self.predict_kwargs['top_p'] 
+                                                     }, "us-central1")
+
+  def _predict_large_language_model_sample(
+    self,
+    api_endpoint: str,
+    project: str,
+    endpoint_id: str,
+    input: str,
+    parameters: str,
+    location: str = "us-central1",
+  ):
+    # The AI Platform services require regional API endpoints.
+    client_options = {"api_endpoint": api_endpoint}
+    # Initialize client that will be used to create and send requests.
+    # This client only needs to be created once, and can be reused for multiple requests.
+    client = aiplatform.gapic.PredictionServiceClient(
+        client_options=client_options
+    )
+    instance_dict = input
+    instance = json_format.ParseDict(instance_dict, Value())
+    instances = [instance]
+    parameters_dict = parameters
+    parameters = json_format.ParseDict(parameters_dict, Value())
+    endpoint = client.endpoint_path(
+        project=project, location=location, endpoint=endpoint_id
+    )
+    response = client.predict(
+        endpoint=endpoint, instances=instances, parameters=parameters
+    )
+    predictions = response.predictions
+    for prediction in predictions:
+      print("******************** prediction:", dict(prediction))
+    return(dict(predictions[0])['content'])
+
 
   @property
   def _identifying_params(self):

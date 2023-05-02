@@ -1,9 +1,8 @@
 """Helper LLM Prompt functions."""
 import json
-from google.cloud.aiplatform.private_preview import language_models
 from sapphire_llm.vertex_llm import VertexLLM
 
-model = language_models.TextGenerationModel.from_pretrained('text-bison-001')
+# model = language_models.TextGenerationModel.from_pretrained('text-bison-001')
 
 """
 vertex_llm = VertexLLM(
@@ -16,19 +15,18 @@ vertex_llm = VertexLLM(
 """
 
 vertex_llm = VertexLLM(
-  model,
+  model=None,
   max_output_tokens=1024,
   temperature=0,
   top_p=0.2,
   top_k=40
-).model
+)
 
-def entity_extraction(sentence):
-  # Year=&Currency=USD&Region=&Sales+Org=&Distribution+Channel=&Division=&Product=&Customer=Standard+Retail
+def entity_extraction(sentence, model: str = "text-bison-001"):
   prompt_template = """
 
 Perform NER on the following sentence and only list entities that were given in the sentence. Use the following definitions for the entities to extract:
-Year and Currency and Region and Sales Org and Distribution Channel and Product and Customer
+Year and Currency and Region and Sales Org and Distribution Channel and Product and Customer. Set the default value for the currency if the value is null. If any of the other values are null then set them equal to empty string.
 
 1. YEAR: The year of the report
 2. CURRENCY: The currency, the default value is USD
@@ -39,7 +37,7 @@ Year and Currency and Region and Sales Org and Distribution Channel and Product 
 7. PRODUCT: The product being sold, such as body scrub, laptop, pure fresh juice, etc.
 8. CUSTOMER: The name of the customer, such as Standard Retail, Tachinome Stores, Tirgil Canary, etc.
 
-OUTPUT FORMAT:
+JSON OUTPUT FORMAT:
 {{'Year': <the year>, 'Currency': 'USD', 'Region': [The list of regions mentioned],
 'Sales Org': [The list of sales orgs mentioned], 'Distribution Channel': [The list of distribution channels mentioned],
 'Division': [The list of divisions mentioned], 'Product': [The list of products mentioned],
@@ -50,18 +48,22 @@ SENTENCE
   """
 
   assembled_prompt = prompt_template.format(sentence)
-  result_str = str(vertex_llm.predict(assembled_prompt))
+  result_str = str(vertex_llm.predict(assembled_prompt, model))
   print("prompt result entity extraction: ", result_str)
   try:
-    json_result = json.loads(result_str.replace('\'', '\"'))
+    if "```" in result_str:
+      json_result = json.loads(result_str.split("```")[1].strip().replace("'", "\""))
+    else:
+      json_result = json.loads(result_str.replace('\'', '\"'))
   except:
     json_result = {}
   return json_result
   
 
-def answer_question(question, table_str):
+def answer_question(question, header, table_str):
   prompt_template = f"""
-  {question} based on the following information:
+  {question}
+  {header}
   {table_str}
   """
   print(prompt_template)
@@ -87,10 +89,8 @@ def summarize_product_sales_results(table_str):
   print(prompt_response)
   return prompt_response
 
-def summarize_news_results(table_results):
+def summarize_news_results(table_results, header):
   
-  header = table_results.pop(0)
-
   prompt_template = f"""
   Summarize the trend of the news articles by month:
   {header}
@@ -101,10 +101,8 @@ def summarize_news_results(table_results):
   print(prompt_response)
   return prompt_response
 
-def summarize_on_time_results(table_results):
+def summarize_on_time_results(table_results, header):
   
-  header = table_results.pop(0)
-
   prompt_template = f"""
   Summarize the following on time delivery results:
   {header}
