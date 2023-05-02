@@ -1,8 +1,10 @@
 """Helper LLM Prompt functions."""
 import json
+from google.cloud.aiplatform.private_preview import language_models
 from sapphire_llm.vertex_llm import VertexLLM
 
-# model = language_models.TextGenerationModel.from_pretrained('text-bison-001')
+model = language_models.TextGenerationModel.from_pretrained('text-bison-001')
+#model = language_models.TextGenerationModel.from_pretrained('text-unicorn-001')
 
 """
 vertex_llm = VertexLLM(
@@ -14,8 +16,9 @@ vertex_llm = VertexLLM(
 ).model
 """
 
+# TODO(agravat@): Change the reference to this model.
 vertex_llm = VertexLLM(
-  model=None,
+  model=model,
   max_output_tokens=1024,
   temperature=0,
   top_p=0.2,
