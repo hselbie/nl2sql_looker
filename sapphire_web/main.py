@@ -49,7 +49,7 @@ def query():
   question = request_json["question"]
   entities = request_json["entities"]
   report_title_match = looker_index.query_index(question)[0]
-  print("report: ", report_title_match)
+  print("%%%%%%%%% report: ", report_title_match, " request entities: ", entities)
   if entities:
     keys = list(filter(lambda x: entities[x] != '' and entities[x] != [], entities))
     filtered_entities = {key: entities[key] for key in keys}
@@ -77,30 +77,34 @@ def query():
     looker_url = looker_helper.generate_looker_url(dashboard_id, urlencode(filtered_entities))
 
   else:
-    entities = {}
     question_entities = prompt_helper.entity_extraction(question, model="text-unicorn-001")
-    print("question_entities: ", question_entities)
+    print("@@@@@@@ question_entities: ", question_entities)
     keys = list(filter(lambda x: question_entities[x] != '' and question_entities[x] != [], question_entities))
+    filtered_entities = {key: question_entities[key] for key in keys}
+    print("@@@@@@@ filtered question_entities: ", filtered_entities)
     if len(keys) > 0:
-      results, dashboard_id, header = looker_helper.get_query_results_with_filter(report_title_match, question_entities)
-      looker_url = looker_helper.generate_looker_url(dashboard_id, urlencode(question_entities))
+      results, dashboard_id, header = looker_helper.get_query_results_with_filter(report_title_match, filtered_entities)
+      looker_url = looker_helper.generate_looker_url(dashboard_id, urlencode(filtered_entities))
     else:
       results, dashboard_id, header = looker_helper.get_query_results(report_title_match)
       looker_url = looker_helper.generate_looker_url(dashboard_id)
     answer = prompt_helper.answer_question(question, header, results)
     # answer = answer.split(".")[0]
-    entities = prompt_helper.entity_extraction(answer, model="text-unicorn-001")
-    res = list(filter(lambda x: entities[x] != '', entities))
+    answer_entities = prompt_helper.entity_extraction(answer, model="text-unicorn-001")
+    print("!@!@!@!@!@!", answer_entities)
+    keys = list(filter(lambda x: answer_entities[x] != '' and answer_entities[x] != [], answer_entities))
+    entities = {key: answer_entities[key] for key in keys}
 
+  print("^^^^^^^^^^^", entities)
   return jsonify({'results': results, 'llm_text': answer, 'entities': entities, 'looker_url': looker_url})
 
 
-@app.route('/no_op', methods = ['POST', 'GET'])
-def no_op():
-  question = request.args.get("question")
-  report_title_match = looker_index.query_index(question)[0]
-  print(report_title_match)
-  entities = {}
+
+
+
+
+
+
   looker_url = ''
   answer = ''
   if entity_stack:

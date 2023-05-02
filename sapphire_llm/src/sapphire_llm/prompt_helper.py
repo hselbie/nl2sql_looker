@@ -29,7 +29,8 @@ def entity_extraction(sentence, model: str = "text-bison-001"):
   prompt_template = """
 
 Perform NER on the following sentence and only list entities that were given in the sentence. Use the following definitions for the entities to extract:
-Year and Currency and Region and Sales Org and Distribution Channel and Product and Customer. Set the default value for the currency if the value is null. If any of the other values are null then set them equal to empty string.
+Year and Currency and Region and Sales Org and Distribution Channel and Product and Customer. Set the default value for the currency if the value is null. 
+If any of the other values are null then set them equal to empty string.  If any value is an empty list then set them equal to empty string.
 
 1. YEAR: The year of the report
 2. CURRENCY: The currency, the default value is USD
@@ -54,7 +55,9 @@ SENTENCE
   result_str = str(vertex_llm.predict(assembled_prompt, model))
   print("prompt result entity extraction: ", result_str)
   try:
-    if "```" in result_str:
+    if "```json" in result_str:
+      json_result = json.loads(result_str.split("```json")[1].replace("\n","").split("```")[0].strip().replace("'", "\""))
+    elif "```" in result_str:
       json_result = json.loads(result_str.split("```")[1].strip().replace("'", "\""))
     else:
       json_result = json.loads(result_str.replace('\'', '\"'))
