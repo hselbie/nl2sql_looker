@@ -11,7 +11,9 @@ import json
 import os
 
 from absl import app
-from google.cloud.aiplatform.private_preview import language_models
+# from google.cloud.aiplatform.private_preview import language_models
+from vertexai.preview.language_models import TextEmbeddingModel
+
 from sapphire_llm.looker_dashboard_index import LookerDashboardIndex
 from sapphire_llm import looker_helper
 from sapphire_llm import prompt_helper
@@ -33,7 +35,10 @@ reports = looker_helper.get_lookml_dashboard_descriptions(files)
 for r in reports:
   print(r)
 
-embedding = VertexEmbeddings(language_models.TextEmbeddingModel(), requests_per_minute=REQUESTS_PER_MINUTE)
+embedding_model = TextEmbeddingModel.from_pretrained("google/textembedding-gecko@001")
+
+# embedding = VertexEmbeddings(language_models.TextEmbeddingModel(), requests_per_minute=REQUESTS_PER_MINUTE)
+embedding = VertexEmbeddings(embedding_model, requests_per_minute=REQUESTS_PER_MINUTE)
 looker_index = LookerDashboardIndex(INDEX_PATH, text_items=reports, embedding=embedding)
 
 # web UI endpoint
@@ -50,69 +55,77 @@ def query():
   entities = request_json["entities"]
   report_title_match = looker_index.query_index(question)[0]
   print("%%%%%%%%% report: ", report_title_match, " request entities: ", entities)
+  error_msg = ""
   if entities:
-    keys = list(filter(lambda x: entities[x] != '' and entities[x] != [], entities))
-    filtered_entities = {key: entities[key] for key in keys}
-    if "cases" in report_title_match.lower():
-      filtered_entities['Year'] = 'this year'
-    results, dashboard_id, header = looker_helper.get_query_results_with_filter(report_title_match, filtered_entities)
-    print("$$$$$$$$$$ filtered entities: ", filtered_entities)
+    try:
+      #question_entities = prompt_helper.entity_extraction(question, model="text-unicorn-001")
+      question_entities = prompt_helper.entity_extraction(question, model="text-bison-001")
+      question_entity_keys = list(filter(lambda x: question_entities[x] != '' and question_entities[x] != [], question_entities))
+      print("**** @@@@@@@ question_entities: *****", question_entities)
+      keys = list(filter(lambda x: entities[x] != '' and entities[x] != [], entities))
+      filtered_entities = {key: entities[key] for key in keys}
+      for key in question_entity_keys:
+        filtered_entities[key] = question_entities[key]
+    except:
+      error_msg = "The entity extraction service had a temporary request error, please retry[1]"
+      return jsonify({'results': '', 'llm_text': error_msg, 'entities': entities, 'looker_url': ''})
 
-    # Use different prompts for different "intents".
-    if "orders" in report_title_match.lower():
-      print("Summarize results: ", header, results)
-      answer = prompt_helper.summarize_response(results)
-    elif "products" in report_title_match.lower():
-      print("Summarize product sales: ", header, results)
-      answer = prompt_helper.answer_question(question, header, results)
-      #answer = prompt_helper.summarize_product_sales_results(results)
-    elif "time" in report_title_match.lower():
-      answer = prompt_helper.summarize_on_time_results(results, header)
-    elif "news" in report_title_match.lower():
-      answer = prompt_helper.summarize_news_results(results, header)
-    else:
+    if "cases" in report_title_match.lower() and filtered_entities['Year'] == '':
+      filtered_entities['Year'] = 'this year'
+    try:
+      results, dashboard_id, header = looker_helper.get_query_results_with_filter(report_title_match, filtered_entities)
+      print("$$$$$$$$$$ filtered entities: ", filtered_entities)
+
+      # Use different prompts for different "intents".
+      if "orders" in report_title_match.lower():
+        answer = prompt_helper.summarize_response(results)
+      elif "products" in report_title_match.lower():
+        answer = prompt_helper.answer_question(question, header, results)
+      elif "time" in report_title_match.lower():
+        answer = prompt_helper.summarize_on_time_results(results, header)
+      elif "news" in report_title_match.lower():
+        answer = prompt_helper.summarize_news_results(results, header)
+      elif "open cases" in report_title_match.lower():
+        answer = prompt_helper.summarize_response(results, header)
+      else:
+        answer = prompt_helper.answer_question(question, header, results)
+
+      looker_url = looker_helper.generate_looker_url(dashboard_id, urlencode(filtered_entities))
+    except:
+      print("error with report: ", report_title_match)
+      return jsonify({'results': '', 'llm_text': 'There was an error with the dashboard: ' + report_title_match, 'entities': entities, 'looker_url': ''})
+  else:
+    try:
+      question_entities = prompt_helper.entity_extraction(question, model="text-bison-001")
+    except:
+      error_msg = "The entity extraction service had a temporary request error, please retry[2]"
+      return jsonify({'results': '', 'llm_text': error_msg, 'entities': entities, 'looker_url': ''})
+
+    try:
+      print("@@@@@@@ question_entities: ", question_entities)
+      keys = list(filter(lambda x: question_entities[x] != '' and question_entities[x] != [], question_entities))
+      filtered_entities = {key: question_entities[key] for key in keys}
+      print("@@@@@@@ filtered question_entities: ", filtered_entities)
+      if len(keys) > 0:
+        results, dashboard_id, header = looker_helper.get_query_results_with_filter(report_title_match, filtered_entities)
+        looker_url = looker_helper.generate_looker_url(dashboard_id, urlencode(filtered_entities))
+      else:
+        results, dashboard_id, header = looker_helper.get_query_results(report_title_match)
+        looker_url = looker_helper.generate_looker_url(dashboard_id)
       answer = prompt_helper.answer_question(question, header, results)
       # answer = answer.split(".")[0]
-
-    looker_url = looker_helper.generate_looker_url(dashboard_id, urlencode(filtered_entities))
-
-  else:
-    question_entities = prompt_helper.entity_extraction(question, model="text-unicorn-001")
-    print("@@@@@@@ question_entities: ", question_entities)
-    keys = list(filter(lambda x: question_entities[x] != '' and question_entities[x] != [], question_entities))
-    filtered_entities = {key: question_entities[key] for key in keys}
-    print("@@@@@@@ filtered question_entities: ", filtered_entities)
-    if len(keys) > 0:
-      results, dashboard_id, header = looker_helper.get_query_results_with_filter(report_title_match, filtered_entities)
-      looker_url = looker_helper.generate_looker_url(dashboard_id, urlencode(filtered_entities))
-    else:
-      results, dashboard_id, header = looker_helper.get_query_results(report_title_match)
-      looker_url = looker_helper.generate_looker_url(dashboard_id)
-    answer = prompt_helper.answer_question(question, header, results)
-    # answer = answer.split(".")[0]
-    answer_entities = prompt_helper.entity_extraction(answer, model="text-unicorn-001")
-    print("!@!@!@!@!@!", answer_entities)
-    keys = list(filter(lambda x: answer_entities[x] != '' and answer_entities[x] != [], answer_entities))
-    entities = {key: answer_entities[key] for key in keys}
+      answer_entities = prompt_helper.entity_extraction(answer, model="text-bison-001")
+      print("!@!@!@!@!@!", answer_entities)
+      keys = list(filter(lambda x: answer_entities[x] != '' and answer_entities[x] != [], answer_entities))
+      entities = {key: answer_entities[key] for key in keys}
+    except:
+      print("error with report: ", report_title_match)
+      return jsonify({'results': '', 'llm_text': 'There was an error with the dashboard: ' + report_title_match, 'entities': entities, 'looker_url': ''})
 
   print("^^^^^^^^^^^", entities)
+  entities['Product'] = ''
   return jsonify({'results': results, 'llm_text': answer, 'entities': entities, 'looker_url': looker_url})
 
-
-
-
-
-
-
-
-  looker_url = ''
-  answer = ''
-  if entity_stack:
-    entities = entity_stack.pop()
-    res = list(filter(lambda x: entities[x] != '', entities))
-    key = res[0]
-    value = entities[key]
-    results = looker_helper.get_query_results_with_filter(report_title_match, key, value)
 
 # The route() function of the Flask class is a decorator,
 # which tells the application which URL should call

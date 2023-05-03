@@ -2,7 +2,9 @@
 
 import time
 
-from google.cloud.aiplatform.private_preview import language_models
+# from google.cloud.aiplatform.private_preview import language_models
+from vertexai.preview.language_models import TextGenerationModel
+
 
 from google.cloud import aiplatform
 from google.cloud.aiplatform.gapic.schema import predict
@@ -53,7 +55,9 @@ class VertexEmbeddings(Embeddings):
 
 class VertexLLM(LLM):
 
-  model: language_models.LanguageModel
+  # model: language_models.LanguageModel
+  model: TextGenerationModel
+
   predict_kwargs: dict
 
   def __init__(self, model, **predict_kwargs):

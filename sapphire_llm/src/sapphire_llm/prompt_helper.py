@@ -25,34 +25,45 @@ vertex_llm = VertexLLM(
   top_k=40
 )
 
+
+def _clean_response(response: str) -> str:
+  if response.startswith('> '):
+    return response.replace('> ', '', 1)
+  return response
+
+
 def entity_extraction(sentence, model: str = "text-bison-001"):
-  prompt_template = """
-
-Perform NER on the following sentence and only list entities that were given in the sentence. Use the following definitions for the entities to extract:
-Year and Currency and Region and Sales Org and Distribution Channel and Product and Customer. Set the default value for the currency if the value is null. 
-If any of the other values are null then set them equal to empty string.  If any value is an empty list then set them equal to empty string.
-
-1. YEAR: The year of the report
+  prompt_template = """Perform entity extraction on the question below and only list entities that were given in the question. Use the following definitions for the entities to extract and only output the json object:
+  
+1. YEAR: The year of the report, the current year is 2023.
 2. CURRENCY: The currency, the default value is USD
 3. REGION: The country, such as Canada, USA, Germany, Japan, etc.
-4. SALES ORG: The sales, such as Canada sales org, Germany sales org, US East sales org, etc.
-5. DISTRIBUTION CHANNEL: The distribution channel, such as Digital Sales, Retail Sales, Wholesale Sales, etc.
-6. DIVISION: The division, such as packaged goods, electronics, perishables, etc.
-7. PRODUCT: The product being sold, such as body scrub, laptop, pure fresh juice, etc.
-8. CUSTOMER: The name of the customer, such as Standard Retail, Tachinome Stores, Tirgil Canary, etc.
+4. PRODUCT: The name of product being sold, such as body scrub, laptop, pure fresh juice, etc.
+5. CUSTOMER: The name of the customer, such as Standard Retail, Tachinome Stores, Tirgil Canary, etc.
 
 JSON OUTPUT FORMAT:
-{{'Year': <the year>, 'Currency': 'USD', 'Region': [The list of regions mentioned],
-'Sales Org': [The list of sales orgs mentioned], 'Distribution Channel': [The list of distribution channels mentioned],
-'Division': [The list of divisions mentioned], 'Product': [The list of products mentioned],
-'Customer': <the company>}}
+{{'Year': <the year>, 'Currency': 'USD', 'Region': <The region mentioned>, 'Product': <The name of the product>,
+'Customer': <the customer>}}
 
-SENTENCE
-{}
+EXAMPLES:
+Question: Who is my top customer this year?
+Answer: ```json{{'Year': 2023, 'Currency': 'USD', 'Region': '', 'Product': '', 'Customer': ''}}```
+
+Question: What was Standard Retails monthly sales this year?
+Answer: ```json{{'Year': 2023, 'Currency': 'USD', 'Region': '', 'Product': '', 'Customer': 'Standard Retail'}}```
+
+Question: What is our current monthly sales volume?
+Answer: ```json{{'Year': 2023, 'Currency': 'USD', 'Region': '', 'Product': '', 'Customer': ''}}```
+
+Now answer the following question:
+Question: {}
+Answer:
+
   """
 
   assembled_prompt = prompt_template.format(sentence)
   result_str = str(vertex_llm.predict(assembled_prompt, model))
+  result_str = result_str.replace('null', '')
   print("prompt result entity extraction: ", result_str)
   try:
     if "```json" in result_str:
@@ -65,7 +76,6 @@ SENTENCE
     json_result = {}
   return json_result
   
-
 def answer_question(question, header, table_str):
   prompt_template = f"""
   {question}
@@ -74,11 +84,12 @@ def answer_question(question, header, table_str):
   """
   print(prompt_template)
   prompt_response = str(vertex_llm.predict(prompt_template))
-  return prompt_response
+  return _clean_response(prompt_response)
 
-def summarize_response(table_str):
+def summarize_response(table_str, header):
   prompt_template = f"""
   Summarize the following information:
+  {header}
   {table_str}
   """
   print(prompt_template)
@@ -105,7 +116,7 @@ def summarize_news_results(table_results, header):
   print(prompt_template)
   prompt_response = str(vertex_llm.predict(prompt_template))
   print(prompt_response)
-  return prompt_response
+  return _clean_response(prompt_response)
 
 def summarize_on_time_results(table_results, header):
   
