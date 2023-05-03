@@ -28,7 +28,8 @@ COPY sapphire_frontend sapphire_frontend
 RUN pip install -r requirements.txt
 RUN pip install gunicorn
 RUN pip install pexpect
-RUN pip install google_cloud_aiplatform-1.23.0.llm.alpha.23.03.28-py2.py3-none-any.whl "shapely<2.0.0"
+#RUN pip install google_cloud_aiplatform-1.23.0.llm.alpha.23.03.28-py2.py3-none-any.whl "shapely<2.0.0"
+RUN pip install google_cloud_aiplatform-1.25.dev20230502+language.models-py2.py3-none-any.whl "shapely<2.0.0"
 RUN cd sapphire_llm && python3 setup.py install && cd ..
 ENV GOOGLE_APPLICATION_CREDENTIALS=./gcp_creds.json
 RUN cd sapphire_frontend && npm i && npm run build

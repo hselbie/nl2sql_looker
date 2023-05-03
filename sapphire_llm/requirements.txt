@@ -1,8 +1,7 @@
-chromadb
-langchain
-google-cloud-core
-google-cloud-bigquery
-pyyaml
-absl-py
-looker_sdk
-Flask
+absl-py==1.4.0
+chromadb==0.3.21
+google-cloud-bigquery==3.10.0
+google-cloud-core==2.3.2
+langchain==0.0.146
+looker-sdk==23.6.0
+PyYAML==6.0
