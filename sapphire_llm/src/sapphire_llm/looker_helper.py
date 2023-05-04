@@ -223,7 +223,7 @@ def get_query_results_with_filter(report_title_match, filtered_entities):
     query_str = sdk.run_inline_query(body=altered_query, result_format="sql")
     query_results = bq_helper.query(query_str)
     header = 'customers_name, sales'
-    if 'time' in report_title_match.lower():
+    if 'time' in report_title_match.lower() or 'sales order' in report_title_match.lower():
       header = 'deliveries_date_created_erdat_month, deliveries_count_on_time_delivery, deliveries_count_in_full_delivery, deliveries_count_otif, deliveries_count_of_deliveries'
     elif 'news' in report_title_match.lower():
       header = 'month, company, number of articles'
@@ -237,16 +237,15 @@ def get_query_results_with_filter(report_title_match, filtered_entities):
       header = 'date, vendor_performance_vendor_ontime, vendor_performance_infull_rate, vendor_performance_vendor_ontime_late'
     for i, row in enumerate(query_results):
       print(row)
-      if row[1] is not None:
+      if row[0] is not None and row[1] is not None:
         if 'orders' in report_title_match.lower():
           results.append(f'{row[0]}, {row[1]}')
         elif 'monthly' in report_title_match.lower():
           results.append(f'{row[0]}, {row[1]}, {row[2]}')
         elif 'news' in report_title_match.lower():
           results.append(f'{row[0]}, {row[1]}, {row[2]}')
-        elif 'time' in report_title_match.lower():
-          if row[0] is not None:
-            results.append(f'{row[0]}, {row[1]}, {row[2]}, {row[3]}, {row[4]}')
+        elif 'time' in report_title_match.lower() or 'sales order' in report_title_match.lower():
+          results.append(f'{row[0]}, {row[1]}, {row[2]}, {row[3]}, {row[4]}')
         elif 'cases' in report_title_match.lower():
           results.append(f'{row[0]}, {row[1]}')
         elif 'stock' in report_title_match.lower():

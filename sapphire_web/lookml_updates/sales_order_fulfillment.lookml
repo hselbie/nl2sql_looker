@@ -2,8 +2,9 @@
   title: Sales Order Fulfillment
   layout: newspaper
   preferred_viewer: dashboards-next
-  description: Sales Order Fulfilment with OTIF KPIs like On Time and In full deliveries
-    for specific time periods by Customer and Product
+  description: Overview of Sales Order Fulfilment with KPIs for sales order delivery
+    times like On-time or delayed; and for delivery quantities like partial or In
+    full deliveries for specific time periods by Customer and Product
   preferred_slug: lHbnrTBMjvg1YjLyNL9x92
   elements:
   - name: Order Fulfillment
@@ -11,7 +12,7 @@
     title_text: Order Fulfillment
     subtitle_text: "<font color=\"#c1c1c1\">How is my Delivery Performance?\t</font>"
     body_text: ''
-    row: 2
+    row: 11
     col: 0
     width: 24
     height: 2
@@ -21,7 +22,7 @@
     title_text: <a href="/dashboards/cortex-demo-genai::sap_order_to_cash_o2c_01_a_delivery_performance_performance_tuning">Delivery
       Performance</a>
     body_text: ''
-    row: 8
+    row: 2
     col: 0
     width: 24
     height: 2
@@ -53,7 +54,7 @@
       Distribution Channel: distribution_channels_md.distribution_channel_name_vtext
       Product: materials_md.material_text_maktx
       Division: divisions_md.division_name_vtext
-    row: 4
+    row: 13
     col: 6
     width: 6
     height: 4
@@ -85,7 +86,7 @@
       Distribution Channel: distribution_channels_md.distribution_channel_name_vtext
       Product: materials_md.material_text_maktx
       Division: divisions_md.division_name_vtext
-    row: 4
+    row: 13
     col: 0
     width: 6
     height: 4
@@ -117,7 +118,7 @@
       Distribution Channel: distribution_channels_md.distribution_channel_name_vtext
       Product: materials_md.material_text_maktx
       Division: divisions_md.division_name_vtext
-    row: 4
+    row: 13
     col: 12
     width: 6
     height: 4
@@ -158,7 +159,7 @@
       Distribution Channel: distribution_channels_md.distribution_channel_name_vtext
       Product: materials_md.material_text_maktx
       Division: divisions_md.division_name_vtext
-    row: 4
+    row: 13
     col: 18
     width: 6
     height: 4
@@ -229,8 +230,8 @@
     col: 0
     width: 24
     height: 7
-  - title: On Time, In Full & OTIF
-    name: On Time, In Full & OTIF
+  - title: Sales Order Fulfilment
+    name: Sales Order Fulfilment
     model: cortex-demo-genai
     explore: sales_orders
     type: looker_line
@@ -294,7 +295,7 @@
       Division: divisions_md.division_name_vtext
       Product: materials_md.material_text_maktx
       Customer: sales_orders.sold_to_party_name
-    row: 10
+    row: 4
     col: 0
     width: 24
     height: 7

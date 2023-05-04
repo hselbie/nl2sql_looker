@@ -79,6 +79,8 @@ def query():
       # Use different prompts for different "intents".
       if "orders" in report_title_match.lower():
         answer = prompt_helper.summarize_response(results)
+      elif "sales order" in report_title_match.lower():
+        answer = prompt_helper.summarize_trend(results, header)
       elif "products" in report_title_match.lower():
         answer = prompt_helper.answer_question(question, header, results)
       elif "time" in report_title_match.lower():

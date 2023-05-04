@@ -118,6 +118,18 @@ def summarize_news_results(table_results, header):
   print(prompt_response)
   return _clean_response(prompt_response)
 
+def summarize_trend(table_results, header):
+  
+  prompt_template = f"""
+  Summarize the trend for the following information:
+  {header}
+  {table_results}
+  """
+  print(prompt_template)
+  prompt_response = str(vertex_llm.predict(prompt_template))
+  print(prompt_response)
+  return _clean_response(prompt_response)
+
 def summarize_on_time_results(table_results, header):
   
   prompt_template = f"""
