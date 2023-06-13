@@ -53,27 +53,34 @@ def query():
   request_json = request.get_json()
   question = request_json["question"]
   entities = request_json["entities"]
-  report_title_match = looker_index.query_index(question)[0]
+  matching_reports = looker_index.query_index(question)
+  if len(matching_reports) > 0:
+    report_title_match = matching_reports[0]
+  else:
+      return jsonify({'results': '', 'llm_text': 'Error finding matching report for query: ' + question, 'entities': entities, 'looker_url': ''})
   print("%%%%%%%%% report: ", report_title_match, " request entities: ", entities)
   error_msg = ""
   if entities:
     try:
       #question_entities = prompt_helper.entity_extraction(question, model="text-unicorn-001")
-      question_entities = prompt_helper.entity_extraction(question, model="text-bison-001")
+      question_entities = prompt_helper.entity_extraction(question)
       question_entity_keys = list(filter(lambda x: question_entities[x] != '' and question_entities[x] != [], question_entities))
       print("**** @@@@@@@ question_entities: *****", question_entities)
       keys = list(filter(lambda x: entities[x] != '' and entities[x] != [], entities))
       filtered_entities = {key: entities[key] for key in keys}
       for key in question_entity_keys:
         filtered_entities[key] = question_entities[key]
-    except:
+    except Exception as err:
       error_msg = "The entity extraction service had a temporary request error, please retry[1]"
+      print(err)
       return jsonify({'results': '', 'llm_text': error_msg, 'entities': entities, 'looker_url': ''})
 
     if "cases" in report_title_match.lower() and filtered_entities['Year'] == '':
       filtered_entities['Year'] = 'this year'
     try:
       results, dashboard_id, header = looker_helper.get_query_results_with_filter(report_title_match, filtered_entities)
+      if results == []:
+        results.append('No Data')
       print("$$$$$$$$$$ filtered entities: ", filtered_entities)
 
       # Use different prompts for different "intents".
@@ -81,6 +88,8 @@ def query():
         answer = prompt_helper.summarize_response(results)
       elif "sales order" in report_title_match.lower():
         answer = prompt_helper.summarize_trend(results, header)
+      elif "stock" in report_title_match.lower():
+        answer = prompt_helper.summarize_stock_in_hand(results, header)
       elif "products" in report_title_match.lower():
         answer = prompt_helper.answer_question(question, header, results)
       elif "time" in report_title_match.lower():
@@ -89,6 +98,8 @@ def query():
         answer = prompt_helper.summarize_news_results(results, header)
       elif "open cases" in report_title_match.lower():
         answer = prompt_helper.summarize_response(results, header)
+      elif "performance" in report_title_match.lower():
+        answer = prompt_helper.summarize_delivery_performance(results, header)
       else:
         answer = prompt_helper.answer_question(question, header, results)
 
@@ -98,9 +109,10 @@ def query():
       return jsonify({'results': '', 'llm_text': 'There was an error with the dashboard: ' + report_title_match, 'entities': entities, 'looker_url': ''})
   else:
     try:
-      question_entities = prompt_helper.entity_extraction(question, model="text-bison-001")
-    except:
+      question_entities = prompt_helper.entity_extraction(question)
+    except Exception as err:
       error_msg = "The entity extraction service had a temporary request error, please retry[2]"
+      print(err)
       return jsonify({'results': '', 'llm_text': error_msg, 'entities': entities, 'looker_url': ''})
 
     try:
@@ -114,9 +126,11 @@ def query():
       else:
         results, dashboard_id, header = looker_helper.get_query_results(report_title_match)
         looker_url = looker_helper.generate_looker_url(dashboard_id)
+      if results == []:
+        results.append('No Data')
       answer = prompt_helper.answer_question(question, header, results)
       # answer = answer.split(".")[0]
-      answer_entities = prompt_helper.entity_extraction(answer, model="text-bison-001")
+      answer_entities = prompt_helper.entity_extraction(answer)
       print("!@!@!@!@!@!", answer_entities)
       keys = list(filter(lambda x: answer_entities[x] != '' and answer_entities[x] != [], answer_entities))
       entities = {key: answer_entities[key] for key in keys}

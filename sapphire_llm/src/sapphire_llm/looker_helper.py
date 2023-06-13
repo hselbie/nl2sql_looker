@@ -204,16 +204,21 @@ def get_query_results_with_filter(report_title_match, filtered_entities):
     filter_fields = element.result_maker.filterables[0].listen
 
     filtered_entities['Timeframe Month'] = '3 months'
+    filtered_entities['Timeframe Month'] = '3 months'
     filtered_entities['Date Month'] = '3 months'
+    filtered_entities['Purchase Order Date'] = 'This Year'
+
+    if 'Customer' in filtered_entities:
+      filtered_entities['Supplier'] = "-" + filtered_entities['Customer'] # Use minus to indicate 'not'
     if 'Year' in filtered_entities:
       filtered_entities['Case Created Date'] = str(filtered_entities['Year'])
+
     for field_element in filter_fields:
       if field_element.dashboard_filter_name in filtered_entities.keys():
         if field_element.dashboard_filter_name == 'Year':
           mapped_columns[field_element.field] = str(filtered_entities[field_element.dashboard_filter_name])
         else:
           mapped_columns[field_element.field] = filtered_entities[field_element.dashboard_filter_name]
-
 
     altered_query = element.result_maker.query
     print("query_id:", altered_query.id, mapped_columns)
@@ -232,7 +237,7 @@ def get_query_results_with_filter(report_title_match, filtered_entities):
     elif 'cases' in report_title_match.lower():
       header = 'open_cases, case_management_count'
     elif 'stock' in report_title_match.lower():
-      header = 'product, product_stock_in_hand'
+      header = 'product, vendor, product_stock_in_hand'
     elif 'delivery' in report_title_match.lower():
       header = 'date, vendor_performance_vendor_ontime, vendor_performance_infull_rate, vendor_performance_vendor_ontime_late'
     for i, row in enumerate(query_results):
@@ -249,10 +254,14 @@ def get_query_results_with_filter(report_title_match, filtered_entities):
         elif 'cases' in report_title_match.lower():
           results.append(f'{row[0]}, {row[1]}')
         elif 'stock' in report_title_match.lower():
-          results.append(f'{row[0]}, {row[2]}') # row[1] is defaul to None for some reason
+          # results.append(f'{row[0]}, {row[2]}') # row[1] is defaul to None for some reason
+          results.append((row[0],row[1], row[2]))
         elif 'delivery' in report_title_match.lower():
-          results.append(f'{row[0]}, {row[1]}, {row[2]}, {row[3]}') # row[1] is defaul to None for some reason
+          results.append(f'{row[0]}, {round(row[1], 2)}, {round(row[2], 2)}, {round(row[3], 2)}') # row[1] is defaul to None for some reason
         else:
           results.append(f'{i+1}. {row[0]}, {human_format(row[1])}')
     break
+  if results and 'stock' in report_title_match.lower():
+    print("********** Sort stock *************")
+    results = sorted(results, key=lambda x: x[2], reverse=True)
   return (results, dashboard_id, header)

@@ -14,8 +14,6 @@ from google.protobuf.struct_pb2 import Value
 from langchain.embeddings.base import Embeddings
 from langchain.llms.base import LLM
 
-vertexai.init(project='cortex-demo-genai', location='us-central1')
-
 def rate_limit(max_per_minute):
   period = 60 / max_per_minute
   while True:
@@ -77,8 +75,7 @@ class VertexLLM(LLM):
   def predict(self, prompt: str, model_name: str = 'text-bison@001'):
     return self._predict_large_language_model_sample("cortex-demo-genai", 
                                                      model_name,
-                                                    #  f'''{{"content": {prompt}}}''',
-                                                    prompt,
+                                                     f'''{{"content": {prompt}}}''',
                                                     temperature=self.predict_kwargs['temperature'],
                                                     max_output_tokens=self.predict_kwargs['max_output_tokens'],
                                                     top_k=self.predict_kwargs['top_k'],
@@ -99,7 +96,7 @@ class VertexLLM(LLM):
   ):
     # The AI Platform services require regional API endpoints.
     # client_options = {"api_endpoint": api_endpoint}
-    
+    vertexai.init(project=project_id, location=location)
     model = TextGenerationModel.from_pretrained(model_name)
     if tuned_model_name:
       model = model.get_tuned_model(tuned_model_name)

@@ -4,7 +4,7 @@ import time
 
 # from google.cloud.aiplatform.private_preview import language_models
 from vertexai.preview.language_models import TextGenerationModel
-import vertexai
+
 
 from google.cloud import aiplatform
 from google.cloud.aiplatform.gapic.schema import predict
@@ -13,8 +13,6 @@ from google.protobuf.struct_pb2 import Value
 
 from langchain.embeddings.base import Embeddings
 from langchain.llms.base import LLM
-
-vertexai.init(project='cortex-demo-genai', location='us-central1')
 
 def rate_limit(max_per_minute):
   period = 60 / max_per_minute
@@ -74,42 +72,50 @@ class VertexLLM(LLM):
     result = self.predict(prompt)
     return str(result)
   
-  def predict(self, prompt: str, model_name: str = 'text-bison@001'):
-    return self._predict_large_language_model_sample("cortex-demo-genai", 
-                                                     model_name,
-                                                    #  f'''{{"content": {prompt}}}''',
-                                                    prompt,
-                                                    temperature=self.predict_kwargs['temperature'],
-                                                    max_output_tokens=self.predict_kwargs['max_output_tokens'],
-                                                    top_k=self.predict_kwargs['top_k'],
-                                                    top_p=self.predict_kwargs['top_p'], 
-                                                    location="us-central1")
+  def predict(self, prompt: str, model: str = 'text-bison-001'):
+    return self._predict_large_language_model_sample("us-central1-aiplatform.googleapis.com", 
+                                                    #  "vertex-ai-foundation-models", 
+                                                    "cloud-large-language-models",
+                                                     model,
+                                                     {"content": prompt},
+                                                     {
+                                                      "temperature": self.predict_kwargs['temperature'],
+                                                      "maxOutputTokens": self.predict_kwargs['max_output_tokens'],
+                                                      "topK":self.predict_kwargs['top_k'],
+                                                      "topP":self.predict_kwargs['top_p'] 
+                                                     }, "us-central1")
 
   def _predict_large_language_model_sample(
     self,
-    project_id: str,
-    model_name: str,
-    content: str,
-    temperature: float,
-    max_output_tokens: int,
-    top_p: float,
-    top_k: int,
+    api_endpoint: str,
+    project: str,
+    endpoint_id: str,
+    input: str,
+    parameters: str,
     location: str = "us-central1",
-    tuned_model_name: str = "",
   ):
     # The AI Platform services require regional API endpoints.
-    # client_options = {"api_endpoint": api_endpoint}
-    
-    model = TextGenerationModel.from_pretrained(model_name)
-    if tuned_model_name:
-      model = model.get_tuned_model(tuned_model_name)
-    response = model.predict(
-        content,
-        temperature=temperature,
-        max_output_tokens=max_output_tokens,
-        top_k=top_k,
-        top_p=top_p,)
-    return response.text
+    client_options = {"api_endpoint": api_endpoint}
+    # Initialize client that will be used to create and send requests.
+    # This client only needs to be created once, and can be reused for multiple requests.
+    client = aiplatform.gapic.PredictionServiceClient(
+        client_options=client_options
+    )
+    instance_dict = input
+    instance = json_format.ParseDict(instance_dict, Value())
+    instances = [instance]
+    parameters_dict = parameters
+    parameters = json_format.ParseDict(parameters_dict, Value())
+    endpoint = client.endpoint_path(
+        project=project, location=location, endpoint=endpoint_id
+    )
+    response = client.predict(
+        endpoint=endpoint, instances=instances, parameters=parameters
+    )
+    predictions = response.predictions
+    for prediction in predictions:
+      print("******************** prediction:", dict(prediction))
+    return(dict(predictions[0])['content'])
 
 
   @property

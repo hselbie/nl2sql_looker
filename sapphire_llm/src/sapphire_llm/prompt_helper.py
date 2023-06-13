@@ -1,9 +1,10 @@
 """Helper LLM Prompt functions."""
 import json
-from google.cloud.aiplatform.private_preview import language_models
+# from google.cloud.aiplatform.private_preview import language_models
+from vertexai.preview.language_models import TextGenerationModel
 from sapphire_llm.vertex_llm import VertexLLM
 
-model = language_models.TextGenerationModel.from_pretrained('text-bison-001')
+model = TextGenerationModel.from_pretrained('text-bison@001')
 #model = language_models.TextGenerationModel.from_pretrained('text-unicorn-001')
 
 """
@@ -20,9 +21,9 @@ vertex_llm = VertexLLM(
 vertex_llm = VertexLLM(
   model=model,
   max_output_tokens=1024,
-  temperature=0,
+  temperature=0.0,
   top_p=0.2,
-  top_k=40
+  top_k=1040
 )
 
 
@@ -32,7 +33,7 @@ def _clean_response(response: str) -> str:
   return response
 
 
-def entity_extraction(sentence, model: str = "text-bison-001"):
+def entity_extraction(sentence, model: str = "text-bison@001"):
   prompt_template = """Perform entity extraction on the question below and only list entities that were given in the question. Use the following definitions for the entities to extract and only output the json object:
   
 1. YEAR: The year of the report, the current year is 2023.
@@ -62,6 +63,7 @@ Answer:
   """
 
   assembled_prompt = prompt_template.format(sentence)
+  print(assembled_prompt)
   result_str = str(vertex_llm.predict(assembled_prompt, model))
   result_str = result_str.replace('null', '')
   print("prompt result entity extraction: ", result_str)
@@ -85,6 +87,26 @@ def answer_question(question, header, table_str):
   print(prompt_template)
   prompt_response = str(vertex_llm.predict(prompt_template))
   return _clean_response(prompt_response)
+
+def summarize_stock_in_hand(table_str, header):
+  prompt_template = f"""
+  Who are the top vendors and products:
+  {header}
+  {table_str}
+  """
+  print(prompt_template)
+  prompt_response = str(vertex_llm.predict(prompt_template))
+  return prompt_response
+
+def summarize_delivery_performance(table_str, header):
+  prompt_template = f"""
+  Provide a short summary for the vendor delivery performance using the following information taking into account changes over time, and bias towards most recent data:
+  {header}
+  {table_str}
+  """
+  print(prompt_template)
+  prompt_response = str(vertex_llm.predict(prompt_template))
+  return prompt_response
 
 def summarize_response(table_str, header):
   prompt_template = f"""

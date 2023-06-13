@@ -26,6 +26,7 @@ class LookerDashboardIndex:
     docs = index.vectorstore.similarity_search_with_score(query,k=k)
     for report in docs:
         report_title_match = report[0].page_content.split(':')[0].replace('_', ' ')
+        print("**** MATCHED REPORT *****", report)
         report_matches.append(report_title_match)
 
     return report_matches

@@ -4,6 +4,7 @@ Flask==2.2.3
 Flask-Cors==3.0.10
 google-cloud-bigquery==3.10.0
 google-cloud-core==2.3.2
+google-cloud-aiplatform==1.25.0
 langchain==0.0.146
 looker-sdk==23.6.0
 PyYAML==6.0

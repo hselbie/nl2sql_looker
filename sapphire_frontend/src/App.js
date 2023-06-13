@@ -17,6 +17,8 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Unstable_Grid2';
 import Iframe from 'react-iframe'
 import Stack from '@mui/joy/Stack';
+import ReactMarkdown from 'react-markdown'
+
 
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -29,6 +31,7 @@ const exampleResponse = {
 };
 const exampleQuestion = 'Which customer has the top sales this year?';
 
+//const llmUrl = 'https://sapphire-demo-7g2p5kai6a-uc.a.run.app/query';
 const llmUrl = '/query';
 
 let entityData = null;
@@ -45,6 +48,7 @@ const App = props => {
   async function handleSubmit (event) {
     event.preventDefault();
     setIsLoading(true);
+    setQuestion('');
 
     if (entityData) {
       console.log(JSON.stringify(entityData));
@@ -53,7 +57,6 @@ const App = props => {
 
     setQuestionDisplay('Q: ' + question);
 
-    //const request = new Request(llmUrl + "?question="+question, {
     const request = new Request(llmUrl, {
       method: 'POST',
       body: JSON.stringify({"question": question, "entities": entityData}),
@@ -97,9 +100,7 @@ const App = props => {
         <Typography variant="h5" component="h5" gutterBottom>
           {questionDisplay}
         </Typography>
-        <Typography variant="body2" color="text" sx={{ mt: 3, mb: 3 }}>
-          {answer}
-        </Typography>
+        <ReactMarkdown>{answer}</ReactMarkdown>
         {isLoading && <CircularProgress />}
         <iframe src={lookerUrl} height={frameHeight} scrolling="no" />
         
