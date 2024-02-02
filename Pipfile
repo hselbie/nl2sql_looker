@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+absl-py = "==1.4.0"
+chromadb = "==0.3.21"
+flask = "==2.2.3"
+flask-cors = "==3.0.10"
+google-cloud-bigquery = "*"
+google-cloud-core = "==2.3.2"
+google-cloud-aiplatform = "*"
+langchain = "==0.0.146"
+looker-sdk = "==23.6.0"
+pyyaml = "==6.0"
+lkml = "*"
+ipython = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
