@@ -4,3 +4,5 @@ config/*
 *.sw*
 sapphire_frontend/build
 oldfiles/*
+.history/*
+.vscode/*

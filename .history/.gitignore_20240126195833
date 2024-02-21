@@ -1,6 +1,0 @@
-config/*
-.chroma
-*node_modules*
-*.sw*
-sapphire_frontend/build
-oldfiles/*
