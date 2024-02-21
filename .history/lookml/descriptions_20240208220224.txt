@@ -42,3 +42,16 @@
 {'view_name.field_name': 'products.retail_price', 'description': 'The retail price of the product.', 'field_type': 'number'}
 {'view_name.field_name': 'products.sku', 'description': 'The stock keeping unit (SKU) of the product.', 'field_type': 'string'}
 {'view_name.field_name': 'products.count', 'description': 'The number of products.', 'field_type': 'count'}
+{'view_name.field_name': 'inventory_items.id', 'description': 'Unique identifier for the inventory item.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.cost', 'description': 'The cost of the inventory item.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.created_at_date', 'description': 'The date and time when the inventory item was created.', 'field_type': 'time'}
+{'view_name.field_name': 'inventory_items.product_brand', 'description': 'The brand of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.product_category', 'description': 'The category of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.product_department', 'description': 'The department of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.product_distribution_center_id', 'description': 'The ID of the distribution center where the product is located.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.product_id', 'description': 'The ID of the product.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.product_name', 'description': 'The name of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.product_retail_price', 'description': 'The retail price of the product.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.product_sku', 'description': 'The SKU of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.sold_at_date', 'description': 'The date and time when the inventory item was sold.', 'field_type': 'time'}
+{'view_name.field_name': 'inventory_items.count', 'description': 'The number of inventory items.', 'field_type': 'count'}

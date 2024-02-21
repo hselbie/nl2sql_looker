@@ -7,7 +7,7 @@ vertex_query_engine = VertexLLM(model_name="gemini-pro", max_output_tokens=100, 
 
 with open("lookml/descriptions.txt", "r") as f:
     LOOKML_DATA = f.read()
-ENTRY_QUERY = 'what the products that have been returned in the last 28 days?' 
+ENTRY_QUERY = 'what are the products that have been returned in the last 28 days?' 
 LOOKER_API_CREDENTIALS = '/usr/local/google/home/hugoselbie/code_sample/py/ini/lags.ini'
 
 intent = f'''
@@ -17,7 +17,7 @@ print(question_intent)
 
 primer = f'''  
 You are a database expert at selecting a series of database fields based on their relevance to a query.
-For this provided intent {question_intent}, and for this provided query {ENTRY_QUERY}, choose what fields are most likely to be relevant
+For this provided intent {question_intent}, and for this provided query {query}, choose what fields are most likely to be relevant
 from these fields {LOOKML_DATA}.
 Only mention the fields that are relevant to the description-keywords. 
 Mention multiple field name if applicable. The field list is as follows: {LOOKML_DATA}

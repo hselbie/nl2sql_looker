@@ -9,12 +9,11 @@ class LookerClient:
         return sdk
 
 
-    def create_query_body(self, model: str, view: str, fields: list, filters):
+    def create_query_body(self, model: str, view: str, fields: list):
         body = looker_sdk.models.WriteQuery(
             model=model,
             view=view,
-            fields=fields,
-            filters=filters
+            fields=fields
         )
         return body
 
@@ -30,16 +29,15 @@ class LookerClient:
 
     def run_inline_query(self, query_body: dict, result_format: str):
         sdk = self.get_client()
-        filter_field = query_body['entities']['timeframe']['field']
-        filter_time_period = query_body['entities']['timeframe']['period']
-        filter_time_value = query_body['entities']['timeframe']['duration']
-        filter_val = f'{filter_time_value} {filter_time_period}'
-        filter_final = {f'{filter_field}':f'{filter_val}'}
+        filter_field = query_body['filter']['field']
+        filter_time_period = query_body['filter']['period']
+        filter_time_value = query_body['filter']['duration']
+        filter_val = f'{filter_field}: {filter_time_value} {filter_time_period}'
         amended_query_body = self.create_query_body(
             model='intermediate_ecomm', 
             view='intermediate_example_ecommerce', 
             fields=query_body['entities']['fields'], 
-            filters=filter_final
+            filters=filter_val
             )
         print(amended_query_body)
         result = sdk.run_inline_query(result_format=result_format, body=amended_query_body)

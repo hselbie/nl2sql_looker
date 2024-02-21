@@ -14,7 +14,7 @@ class LookerClient:
             model=model,
             view=view,
             fields=fields,
-            filters=filters
+            filters={filters}
         )
         return body
 

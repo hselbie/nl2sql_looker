@@ -2,13 +2,14 @@
 {'view_name.field_name': 'order_items.inventory_item_id', 'description': 'The unique identifier for the inventory item associated with the order item.', 'field_type': 'number'}
 {'view_name.field_name': 'order_items.user_id', 'description': 'The unique identifier for the user who purchased the order item.', 'field_type': 'number'}
 {'view_name.field_name': 'order_items.count', 'description': 'The number of units of the order item that were purchased.', 'field_type': 'count'}
+{'view_name.field_name': 'order_items.count_last_28d', 'description': 'The number of units of the order item that were purchased in the last 28 days.', 'field_type': 'count_distinct'}
 {'view_name.field_name': 'order_items.order_count', 'description': 'The number of orders that contain the order item.', 'field_type': 'count_distinct'}
 {'view_name.field_name': 'order_items.order_id_no_actions', 'description': 'The unique identifier for the order that the order item belongs to.', 'field_type': 'number'}
 {'view_name.field_name': 'order_items.order_id', 'description': 'The unique identifier for the order that the order item belongs to.', 'field_type': 'number'}
-{'view_name.field_name': 'order_items.returned_at_date', 'description': 'The date and time when the order item was returned.', 'field_type': 'time'}
-{'view_name.field_name': 'order_items.shipped_at_date', 'description': 'The date and time when the order item was shipped.', 'field_type': 'time'}
-{'view_name.field_name': 'order_items.delivered_at_date', 'description': 'The date and time when the order item was delivered.', 'field_type': 'time'}
-{'view_name.field_name': 'order_items.created_at_date', 'description': 'The date and time when the order item was created.', 'field_type': 'time'}
+{'view_name.field_name': 'order_items.returned_date', 'description': 'The date and time when the order item was returned.', 'field_type': 'time'}
+{'view_name.field_name': 'order_items.shipped_date', 'description': 'The date and time when the order item was shipped.', 'field_type': 'time'}
+{'view_name.field_name': 'order_items.delivered_date', 'description': 'The date and time when the order item was delivered.', 'field_type': 'time'}
+{'view_name.field_name': 'order_items.created_date', 'description': 'The date and time when the order item was created.', 'field_type': 'time'}
 {'view_name.field_name': 'order_items.reporting_period', 'description': 'The reporting period for the order item.', 'field_type': 'group_label'}
 {'view_name.field_name': 'order_items.days_since_sold', 'description': 'The number of days since the order item was sold.', 'field_type': 'number'}
 {'view_name.field_name': 'order_items.months_since_signup', 'description': 'The number of months since the user who purchased the order item signed up for the service.', 'field_type': 'number'}
@@ -42,3 +43,16 @@
 {'view_name.field_name': 'products.retail_price', 'description': 'The retail price of the product.', 'field_type': 'number'}
 {'view_name.field_name': 'products.sku', 'description': 'The stock keeping unit (SKU) of the product.', 'field_type': 'string'}
 {'view_name.field_name': 'products.count', 'description': 'The number of products.', 'field_type': 'count'}
+{'view_name.field_name': 'inventory_items.id', 'description': 'Unique identifier for the inventory item.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.cost', 'description': 'The cost of the inventory item.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.created_date', 'description': 'The date and time when the inventory item was created.', 'field_type': 'time'}
+{'view_name.field_name': 'inventory_items.product_brand', 'description': 'The brand of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.product_category', 'description': 'The category of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.product_department', 'description': 'The department of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.product_distribution_center_id', 'description': 'The ID of the distribution center where the product is located.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.product_id', 'description': 'The ID of the product.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.product_name', 'description': 'The name of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.product_retail_price', 'description': 'The retail price of the product.', 'field_type': 'number'}
+{'view_name.field_name': 'inventory_items.product_sku', 'description': 'The SKU of the product.', 'field_type': 'string'}
+{'view_name.field_name': 'inventory_items.sold_date', 'description': 'The date and time when the inventory item was sold.', 'field_type': 'time'}
+{'view_name.field_name': 'inventory_items.count', 'description': 'The number of inventory items.', 'field_type': 'count'}

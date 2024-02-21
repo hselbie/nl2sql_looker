@@ -14,7 +14,7 @@ class LookerClient:
             model=model,
             view=view,
             fields=fields,
-            filters=filters
+            filters={filters}
         )
         return body
 
@@ -33,13 +33,12 @@ class LookerClient:
         filter_field = query_body['entities']['timeframe']['field']
         filter_time_period = query_body['entities']['timeframe']['period']
         filter_time_value = query_body['entities']['timeframe']['duration']
-        filter_val = f'{filter_time_value} {filter_time_period}'
-        filter_final = {f'{filter_field}':f'{filter_val}'}
+        filter_val = f'{filter_field}: {filter_time_value} {filter_time_period}'
         amended_query_body = self.create_query_body(
             model='intermediate_ecomm', 
             view='intermediate_example_ecommerce', 
             fields=query_body['entities']['fields'], 
-            filters=filter_final
+            filters=filter_val
             )
         print(amended_query_body)
         result = sdk.run_inline_query(result_format=result_format, body=amended_query_body)
